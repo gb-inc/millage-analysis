@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
+
+	_ "github.com/denisenkom/go-mssqldb"
 )
 
 func NewDB(server string, port string, database string, creds ...string) (*sql.DB, error) {
