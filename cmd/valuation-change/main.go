@@ -16,12 +16,12 @@ var (
 
 type Row struct {
 	TownShipBorough string
-	OldLandAssmt    int
-	OldImprAssmt    int
-	NewLandAssmt    int
-	NewImprAssmt    int
-	LandDiff        int // NewLandAssmt - OldLandAssmt
-	ImprDiff        int // NewImprAssmt - OldImprAssmt
+	OldLandAssmt    float64
+	OldImprAssmt    float64
+	NewLandAssmt    float64
+	NewImprAssmt    float64
+	LandDiff        float64 // NewLandAssmt - OldLandAssmt
+	ImprDiff        float64 // NewImprAssmt - OldImprAssmt
 
 }
 
