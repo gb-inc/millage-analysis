@@ -64,7 +64,10 @@ func main() {
 	// Generate Excel report
 	f := excelize.NewFile()
 	sheetName := "ValuationChanges"
-	index := f.NewSheet(sheetName)
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		log.Fatal(err)
+	}
 	f.SetActiveSheet(index)
 	f.SetCellValue(sheetName, "A1", "Township Borough")
 	f.SetCellValue(sheetName, "B1", "Old Land Assmt")
