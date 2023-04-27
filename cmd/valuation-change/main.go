@@ -16,12 +16,12 @@ var (
 
 type Row struct {
 	TownShipBorough string
-	OldLandAssmt    int
-	OldImprAssmt    int
-	NewLandAssmt    int
-	NewImprAssmt    int
-	LandDiff        int // NewLandAssmt - OldLandAssmt
-	ImprDiff        int // NewImprAssmt - OldImprAssmt
+	OldLandAssmt    float64
+	OldImprAssmt    float64
+	NewLandAssmt    float64
+	NewImprAssmt    float64
+	LandDiff        float64 // NewLandAssmt - OldLandAssmt
+	ImprDiff        float64 // NewImprAssmt - OldImprAssmt
 
 }
 
@@ -64,7 +64,10 @@ func main() {
 	// Generate Excel report
 	f := excelize.NewFile()
 	sheetName := "ValuationChanges"
-	index := f.NewSheet(sheetName)
+	index, err := f.NewSheet(sheetName)
+	if err != nil {
+		log.Fatal(err)
+	}
 	f.SetActiveSheet(index)
 	f.SetCellValue(sheetName, "A1", "Township Borough")
 	f.SetCellValue(sheetName, "B1", "Old Land Assmt")
