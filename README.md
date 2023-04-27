@@ -1,3 +1,2 @@
 # millage-analysis
-## Valuation Change
-Measures change in valuation post Wayne County reassessment. Exports to Excel file for data analysis.
+compilation of apps designed for millage analysis
