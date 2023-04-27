@@ -1,4 +1,4 @@
-package millage_analysis_excel
+package excel
 
 import (
 	"github.com/xuri/excelize/v2"
