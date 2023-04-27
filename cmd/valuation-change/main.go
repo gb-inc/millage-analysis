@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/orklepee/millage-analysis/utils"
-	"github.com/qax-os/excelize"
+	"github.com/gb-inc/millage-analysis/utils"
+	"github.com/xuri/excelize/v2"
 )
 
 var (
@@ -16,12 +16,12 @@ var (
 
 type Row struct {
 	TownShipBorough string
-	OldLandAssmt int
-	OldImprAssmt int
-	NewLandAssmt int
-	NewImprAssmt int
-	LandDiff     int // NewLandAssmt - OldLandAssmt
-	ImprDiff     int // NewImprAssmt - OldImprAssmt
+	OldLandAssmt    int
+	OldImprAssmt    int
+	NewLandAssmt    int
+	NewImprAssmt    int
+	LandDiff        int // NewLandAssmt - OldLandAssmt
+	ImprDiff        int // NewImprAssmt - OldImprAssmt
 
 }
 
