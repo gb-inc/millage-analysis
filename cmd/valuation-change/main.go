@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gb-inc/millage-analysis/utils"
 	"github.com/xuri/excelize/v2"
@@ -63,7 +64,8 @@ func main() {
 
 	// Generate Excel report
 	f := excelize.NewFile()
-	sheetName := "ValuationChanges"
+	var today string = time.Now().Format("2006-01-02")
+	sheetName := "ValuationChanges_" + today
 	index, err := f.NewSheet(sheetName)
 	if err != nil {
 		log.Fatal(err)
@@ -85,7 +87,7 @@ func main() {
 		f.SetCellValue(sheetName, fmt.Sprintf("F%d", i+2), r.LandDiff)
 		f.SetCellValue(sheetName, fmt.Sprintf("G%d", i+2), r.ImprDiff)
 	}
-	if err := f.SaveAs("./valuationchange.xlsx"); err != nil {
+	if err := f.SaveAs("./ValuationChanges_" + today + ".xlsx"); err != nil {
 		log.Fatal(err)
 	}
 
