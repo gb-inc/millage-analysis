@@ -92,7 +92,19 @@ func popDataCells(f *excelize.File, sheet string, data []Row) {
 		f.SetCellValue(sheet, fmt.Sprintf("E%d", i+2), r.NewImprAssmt)
 		f.SetCellValue(sheet, fmt.Sprintf("F%d", i+2), r.LandDiff)
 		f.SetCellValue(sheet, fmt.Sprintf("G%d", i+2), r.ImprDiff)
+
+		// Set number format of columns B to G to "$#,##0.00"
+		styleID, err := f.NewStyle(&excelize.Style{
+			NumFmt: 3,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+		for j := 1; j <= 6; j++ {
+			f.SetCellStyle(sheet, fmt.Sprintf("%c%d", 'B'+j-1, i+2), fmt.Sprintf("%c%d", 'B'+j-1, i+2), styleID)
+		}
 	}
+
 	fmtDataCells(f, sheet)
 }
 
