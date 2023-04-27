@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gb-inc/millage-analysis/utils"
+	//excel "github.com/gb-inc/millage-analysis/millage_analysis_excel"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -72,6 +73,7 @@ func main() {
 	}
 	f.SetActiveSheet(index)
 	f.SetCellValue(sheetName, "A1", "Township Borough")
+	//excel.formatCell(f, sheetName, "A1")
 	f.SetCellValue(sheetName, "B1", "Old Land Assmt")
 	f.SetCellValue(sheetName, "C1", "Old Impr Assmt")
 	f.SetCellValue(sheetName, "D1", "New Land Assmt")
