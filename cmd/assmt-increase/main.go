@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	//go:embed valuationchange.sql
+	//go:embed bytwp-assmtincrease.sql
 	valuationchangeSql string
 )
 
