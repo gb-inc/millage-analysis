@@ -1,4 +1,4 @@
-CREATE OR ALTER VIEW byprop_valuationchange AS
+CREATE OR ALTER VIEW byprop_assmtincrease AS
     SELECT
      P.TownShipBorough
     ,IIF(TownshipOrBorough = 'B', TBC.[Description] + ' BORO', TBC.[Description] + ' TWP') DisName
