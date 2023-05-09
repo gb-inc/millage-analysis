@@ -1,5 +1,5 @@
 # assmt-increase
-measures assessment increase post Wayne County reassessment (see FB 11466)
+measures assessment increase for wayne county school districts post reassessment (see FB 11466)
 
 `main.go` exports to Excel file for data analysis.
 
