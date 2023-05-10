@@ -17,17 +17,15 @@ var (
 
 type Row struct {
 	TownShipBorough string
-	OldLandAssmt    float64
+	DistrictName    string
 	OldImprAssmt    float64
-	NewLandAssmt    float64
 	NewImprAssmt    float64
-	LandDiff        float64 // NewLandAssmt - OldLandAssmt
 	ImprDiff        float64 // NewImprAssmt - OldImprAssmt
 
 }
 
 func main() {
-	db, err := utils.NewDB("localhost", "1433", "TaxDB_Dev")
+	db, err := utils.NewDB("localhost", "1433", "TaxDB")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +51,7 @@ func main() {
 	var data []Row
 	for rows.Next() {
 		var r Row
-		if err := rows.Scan(&r.TownShipBorough, &r.OldLandAssmt, &r.OldImprAssmt, &r.NewLandAssmt, &r.NewImprAssmt, &r.LandDiff, &r.ImprDiff); err != nil {
+		if err := rows.Scan(&r.TownShipBorough, &r.DistrictName, &r.OldImprAssmt, &r.NewImprAssmt, &r.ImprDiff); err != nil {
 			log.Fatal(err)
 		}
 		data = append(data, r)
@@ -86,12 +84,10 @@ func main() {
 func popDataCells(f *excelize.File, sheet string, data []Row) {
 	for i, r := range data {
 		f.SetCellValue(sheet, fmt.Sprintf("A%d", i+2), r.TownShipBorough)
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", i+2), r.OldLandAssmt)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", i+2), r.DistrictName)
 		f.SetCellValue(sheet, fmt.Sprintf("C%d", i+2), r.OldImprAssmt)
-		f.SetCellValue(sheet, fmt.Sprintf("D%d", i+2), r.NewLandAssmt)
-		f.SetCellValue(sheet, fmt.Sprintf("E%d", i+2), r.NewImprAssmt)
-		f.SetCellValue(sheet, fmt.Sprintf("F%d", i+2), r.LandDiff)
-		f.SetCellValue(sheet, fmt.Sprintf("G%d", i+2), r.ImprDiff)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", i+2), r.NewImprAssmt)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", i+2), r.ImprDiff)
 
 		// Set number format of columns B to G to "$#,##0.00"
 		styleID, err := f.NewStyle(&excelize.Style{
