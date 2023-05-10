@@ -22,6 +22,7 @@ CREATE OR ALTER VIEW byprop_assmtincrease AS
             SELECT *, RANK() OVER (PARTITION BY PropertyID ORDER BY AssessmentID DESC) AS rank
             FROM AssmtNew
             WHERE EffectiveDate = '2023-01-01 00:00:00.000'
+            AND ApprovalDate < '2023-01-01 00:00:00.000'
         ) ranked
         WHERE rank = 1
     ) ANOLD ON P.PropertyID = ANOLD.PropertyID
