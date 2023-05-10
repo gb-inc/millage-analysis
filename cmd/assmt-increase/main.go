@@ -12,7 +12,7 @@ import (
 
 var (
 	//go:embed bytwp-assmtincrease.sql
-	valuationchangeSql string
+	isolateconstructionSql string
 )
 
 type Row struct {
@@ -25,7 +25,7 @@ type Row struct {
 }
 
 func main() {
-	db, err := utils.NewDB("localhost", "1433", "TaxDB")
+	db, err := utils.NewDB("localhost", "1433", "TaxDB_Dev")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func main() {
 	defer utils.HandleTxFunc(tx, &ok)
 
 	// Query database
-	rows, err := tx.Query(valuationchangeSql)
+	rows, err := tx.Query(isolateconstructionSql)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -60,20 +60,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Generate Excel report
-	f := excelize.NewFile()
-	var today string = time.Now().Format("2006-01-02")
-	sheetName := "ValuationChanges_" + today
-	index, err := f.NewSheet(sheetName)
+	// Pull SD Excel template
+	f, err := excelize.OpenFile("./templ/WHSD_AssmtIncrease_.xlsx")
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
-	f.SetActiveSheet(index)
-	popHeaderCells(f, sheetName)
-	popDataCells(f, sheetName, data)
-	utils.AutoFitColumns(f, sheetName, "A", "G")
 
-	if err := f.SaveAs("./" + sheetName + ".xlsx"); err != nil {
+	var today string = time.Now().Format("2006-01-02")
+
+	/* Populate "Data" sheet */
+	sheetIndex := 1 // "Data" sheet
+	sheetName := f.GetSheetMap()[sheetIndex]
+	f.SetActiveSheet(sheetIndex)
+	popDataCells(f, sheetName, data)
+
+	/* Populate "Cover" sheet */
+	sheetIndex = 2 // "Cover" sheet
+	sheetName = f.GetSheetMap()[sheetIndex]
+	f.SetActiveSheet(sheetIndex)
+	popHeaderCells(f, sheetName)
+
+	currTime := time.Now().Format("1504")
+	if err := f.SaveAs("C:/Users/Samuel/grandjean.net/FogBugz - Documents/11466/daily/WHSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"); err != nil {
 		log.Fatal(err)
 	}
 
@@ -83,21 +92,21 @@ func main() {
 
 func popDataCells(f *excelize.File, sheet string, data []Row) {
 	for i, r := range data {
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", i+2), r.TownShipBorough)
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", i+2), r.DistrictName)
-		f.SetCellValue(sheet, fmt.Sprintf("C%d", i+2), r.OldImprAssmt)
-		f.SetCellValue(sheet, fmt.Sprintf("D%d", i+2), r.NewImprAssmt)
-		f.SetCellValue(sheet, fmt.Sprintf("E%d", i+2), r.ImprDiff)
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", i+5), r.TownShipBorough)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", i+5), r.DistrictName)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", i+5), r.NewImprAssmt)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", i+5), r.OldImprAssmt)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", i+5), r.ImprDiff)
 
-		// Set number format of columns B to G to "$#,##0.00"
+		// Set number format of columns C to E to "$#,##0.00"
 		styleID, err := f.NewStyle(&excelize.Style{
 			NumFmt: 3,
 		})
 		if err != nil {
 			log.Fatal(err)
 		}
-		for j := 1; j <= 6; j++ {
-			f.SetCellStyle(sheet, fmt.Sprintf("%c%d", 'B'+j-1, i+2), fmt.Sprintf("%c%d", 'B'+j-1, i+2), styleID)
+		for j := 3; j <= 5; j++ {
+			f.SetCellStyle(sheet, fmt.Sprintf("%c%d", 'A'+j-1, i+5), fmt.Sprintf("%c%d", 'A'+j-1, i+5), styleID)
 		}
 	}
 
@@ -109,115 +118,17 @@ func fmtDataCells(f *excelize.File, sheet string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	for i := 2; i <= len(numRows); i++ {
-		utils.FmtDataCell(f, "#E2EFDA", sheet, []string{fmt.Sprintf("D%d", i), fmt.Sprintf("E%d", i)}) // Green - indicates new valuation
-		utils.FmtDataCell(f, "#FCE4D6", sheet, []string{fmt.Sprintf("F%d", i), fmt.Sprintf("G%d", i)}) // Yellow - indicates change in valuation
-	}
-
-	err = f.AutoFilter(sheet, "A1:G1", []excelize.AutoFilterOptions{})
-	if err != nil {
-		fmt.Println(err)
+	for i := 5; i <= len(numRows)-1; i++ {
+		utils.FmtDataCell(f, "#4472C4", sheet, []string{fmt.Sprintf("C%d", i)}) // Green - indicates new valuation
+		utils.FmtDataCell(f, "#70AD47", sheet, []string{fmt.Sprintf("E%d", i)}) // Yellow - indicates change in valuation
 	}
 }
 
 func popHeaderCells(f *excelize.File, sheet string) {
-	f.SetCellValue(sheet, "A1", "Township Borough")
-	f.SetCellValue(sheet, "B1", "Old Land Assmt")
-	f.SetCellValue(sheet, "C1", "Old Impr Assmt")
-	f.SetCellValue(sheet, "D1", "New Land Assmt")
-	f.SetCellValue(sheet, "E1", "New Impr Assmt")
-	f.SetCellValue(sheet, "F1", "Land Diff")
-	f.SetCellValue(sheet, "G1", "Impr Diff")
-	fmtHeaderCells(f, sheet)
-}
-func fmtHeaderCells(f *excelize.File, sheet string) {
-
-	var newvalcells []string = []string{"D1", "E1"}
-	var chgvalcells []string = []string{"F1", "G1"}
-	var othercells []string = []string{"A1", "B1", "C1"}
-
-	newvalID, err := f.NewStyle(&excelize.Style{ // Bold Header Green - indicates new valuation
-		Fill: excelize.Fill{
-			Type:    "pattern",
-			Pattern: 1,
-			Color:   []string{"#E2EFDA"},
-		},
-		Font: &excelize.Font{
-			Bold: true,
-		},
-		Border: []excelize.Border{
-			{
-				Type:  "left",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-			{
-				Type:  "top",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-			{
-				Type:  "right",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-			{
-				Type:  "bottom",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-		},
-	})
-
-	if err != nil {
-		fmt.Println(err)
+	switch sheet {
+	case "Cover":
+		var today string = time.Now().Format("01/02/2006")
+		f.SetCellValue(sheet, "A2", "Parcels w/ New Construction as of "+today+":")
+		f.SetCellValue(sheet, "A3", "Parcels w/ New Construction as of 01/01/2023:")
 	}
-
-	chgvalID, err := f.NewStyle(&excelize.Style{ // Bold Header Yellow - indicates change in valuation
-		Fill: excelize.Fill{
-			Type:    "pattern",
-			Pattern: 1,
-			Color:   []string{"#FCE4D6"},
-		},
-		Font: &excelize.Font{
-			Bold: true,
-		},
-		Border: []excelize.Border{
-			{
-				Type:  "left",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-			{
-				Type:  "top",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-			{
-				Type:  "right",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-			{
-				Type:  "bottom",
-				Color: "#B2B2B2",
-				Style: 1,
-			},
-		},
-	})
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	//Apply style to column
-	for _, cell := range newvalcells {
-		f.SetCellStyle(sheet, cell, cell, newvalID)
-	}
-	for _, cell := range chgvalcells {
-		f.SetCellStyle(sheet, cell, cell, chgvalID)
-	}
-
-	utils.BoldCells(f, sheet, othercells)
-
 }
