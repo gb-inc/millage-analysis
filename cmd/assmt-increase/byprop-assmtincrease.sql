@@ -49,4 +49,4 @@ CREATE OR ALTER VIEW byprop_assmtincrease AS
      '210',
      '270') -- 273 in Wallenpaupack
     /* Wayne Highlands School District Specific */
-    AND (AN.LandAssessment + AN.ImprovementAssessment) - (ANOLD.LandAssessment + ANOLD.ImprovementAssessment) >= 0
+    AND (AN.ImprovementAssessment) - (ANOLD.ImprovementAssessment) >= 0
