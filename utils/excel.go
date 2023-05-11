@@ -20,6 +20,9 @@ func FmtDataCell(f *excelize.File, fillColor, sheet string, cells []string) {
 			Pattern: 1,
 			Color:   []string{fillColor},
 		},
+		Font: &excelize.Font{
+			Color: "#FFFFFF",
+		},
 		Border: []excelize.Border{
 			{
 				Type:  "left",
@@ -42,6 +45,7 @@ func FmtDataCell(f *excelize.File, fillColor, sheet string, cells []string) {
 				Style: 1,
 			},
 		},
+		NumFmt: 3,
 	})
 	if err != nil {
 		fmt.Println(err)

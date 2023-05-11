@@ -12,7 +12,7 @@ import (
 
 var (
 	//go:embed bytwp-assmtincrease.sql
-	isolateconstructionSql string
+	newconstructionSql string
 )
 
 type Row struct {
@@ -41,7 +41,7 @@ func main() {
 	defer utils.HandleTxFunc(tx, &ok)
 
 	// Query database
-	rows, err := tx.Query(isolateconstructionSql)
+	rows, err := tx.Query(newconstructionSql)
 	if err != nil {
 		log.Fatal(err)
 	}
