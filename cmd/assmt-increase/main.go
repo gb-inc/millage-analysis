@@ -47,7 +47,7 @@ func main() {
 	}
 	defer rows.Close()
 
-	// Parse rows into struct
+	// Parse WHSD rows into struct
 	var data []Row
 	for rows.Next() {
 		var r Row
@@ -60,15 +60,65 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Pull SD Excel template
-	f, err := excelize.OpenFile("./templ/WHSD_AssmtIncrease_.xlsx")
+	// Pull WHSD Excel template
+	f1, err := excelize.OpenFile("./templ/WHSD_AssmtIncrease_.xlsx")
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
+	var schoolDist string = "WHSD"
+	handleSchoolDist(f1, schoolDist, data)
 
-	var today string = time.Now().Format("2006-01-02")
+	// Pull WESD Excel template
+	f2, err := excelize.OpenFile("./templ/WESD_AssmtIncrease_.xlsx")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	schoolDist = "WESD"
+	handleSchoolDist(f2, schoolDist, data)
 
+	// Pull WASD Excel template
+	f3, err := excelize.OpenFile("./templ/WASD_AssmtIncrease_.xlsx")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	schoolDist = "WASD"
+	handleSchoolDist(f3, schoolDist, data)
+
+	// Pull SQSD Excel template
+	f4, err := excelize.OpenFile("./templ/SQSD_AssmtIncrease_.xlsx")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	schoolDist = "SQSD"
+	handleSchoolDist(f4, schoolDist, data)
+
+	// Pull NPSD Excel template
+	f5, err := excelize.OpenFile("./templ/NPSD_AssmtIncrease_.xlsx")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	schoolDist = "NPSD"
+	handleSchoolDist(f5, schoolDist, data)
+
+	// Pull FCRSD Excel template
+	f6, err := excelize.OpenFile("./templ/FCRSD_AssmtIncrease_.xlsx")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	schoolDist = "FCRSD"
+	handleSchoolDist(f6, schoolDist, data)
+
+	// Set transaction success flag
+	ok = true
+}
+
+func handleSchoolDist(f *excelize.File, schoolDist string, data []Row) {
 	/* Populate "Data" sheet */
 	sheetIndex := 1 // "Data" sheet
 	sheetName := f.GetSheetMap()[sheetIndex]
@@ -81,13 +131,34 @@ func main() {
 	f.SetActiveSheet(sheetIndex)
 	popHeaderCells(f, sheetName)
 
+	// Save file
+	saveExcelFile(f, schoolDist)
+}
+
+func saveExcelFile(f *excelize.File, schoolDist string) {
 	currTime := time.Now().Format("1504")
-	if err := f.SaveAs("C:/Users/Samuel/grandjean.net/FogBugz - Documents/11466/daily/WHSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"); err != nil {
-		log.Fatal(err)
+	var today string = time.Now().Format("2006-01-02")
+	var savePath string = "C:/Users/Samuel/grandjean.net/FogBugz - Documents/"
+
+	switch schoolDist {
+	case "WHSD":
+		savePath += "11466/daily/WHSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "WESD":
+		savePath += "11528/daily/WESD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "WASD":
+		savePath += "11529/daily/WASD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "SQSD":
+		savePath += "11524/daily/SQSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "NPSD":
+		savePath += "11530/daily/NPSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "FCRSD":
+		savePath += "11521/daily/FCRSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
 	}
 
-	// Set transaction success flag
-	ok = true
+	if err := f.SaveAs(savePath); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(schoolDist + " saved at " + currTime + ".\n")
 }
 
 func popDataCells(f *excelize.File, sheet string, data []Row) {

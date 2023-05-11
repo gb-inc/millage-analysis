@@ -33,3 +33,4 @@ CREATE OR ALTER VIEW byprop_assmtincrease AS
     AND TBC.TownshipOrBorough IN ('T','B')
     AND NOT luc.ParcelStatus = 'N'
     AND (AN.ImprovementAssessment) - (ANOLD.ImprovementAssessment) >= 0
+    AND P.TownShipBorough IN
