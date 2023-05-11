@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	//go:embed bytwp-assmtincrease.sql
+	//go:embed .\sql\bytwp-assmtincrease.sql
 	newconstructionSql string
 )
 
