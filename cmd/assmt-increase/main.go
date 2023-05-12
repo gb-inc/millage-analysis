@@ -26,10 +26,9 @@ type txblRow struct {
 type Row struct {
 	TownShipBorough string
 	DistrictName    string
-	OldImprAssmt    float64
 	NewImprAssmt    float64
+	OldImprAssmt    float64
 	ImprDiff        float64 // NewImprAssmt - OldImprAssmt
-
 }
 
 func main() {
@@ -94,7 +93,7 @@ func main() {
 		var data []Row
 		for rows.Next() {
 			var r Row
-			if err := rows.Scan(&r.TownShipBorough, &r.DistrictName, &r.OldImprAssmt, &r.NewImprAssmt, &r.ImprDiff); err != nil {
+			if err := rows.Scan(&r.TownShipBorough, &r.DistrictName, &r.NewImprAssmt, &r.OldImprAssmt, &r.ImprDiff); err != nil {
 				log.Fatal(err)
 			}
 			data = append(data, r)
