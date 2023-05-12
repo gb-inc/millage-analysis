@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/gb-inc/millage-analysis/utils"
@@ -11,9 +12,16 @@ import (
 )
 
 var (
-	//go:embed bytwp-assmtincrease.sql
+	//go:embed .\sql\bytwp-assmtincrease.sql
 	newconstructionSql string
+
+	//go:embed .\sql\total-taxable.sql
+	totaltaxableSql string
 )
+
+type txblRow struct {
+	TotalTxbl float64 // Necessary to calculate millages
+}
 
 type Row struct {
 	TownShipBorough string
@@ -40,35 +48,80 @@ func main() {
 	var ok bool
 	defer utils.HandleTxFunc(tx, &ok)
 
-	// Query database
-	rows, err := tx.Query(newconstructionSql)
-	if err != nil {
-		log.Fatal(err)
+	// Define "WHERE" conditions for each SD
+	sdWhereMap := map[string]string{
+		"WHSD":  "('030','070','150','200','230','020','090','110','130','010','050','170','210','270')",
+		"WESD":  "('040','061','120','220','240','260','280')",
+		"WASD":  "('080','100','180','190','273')",
+		"SQSD":  "('250')",
+		"NPSD":  "('140')",
+		"FCRSD": "('062','160')",
 	}
-	defer rows.Close()
 
-	// Parse rows into struct
-	var data []Row
-	for rows.Next() {
-		var r Row
-		if err := rows.Scan(&r.TownShipBorough, &r.DistrictName, &r.OldImprAssmt, &r.NewImprAssmt, &r.ImprDiff); err != nil {
+	// Query database
+	for sdName, sdWhere := range sdWhereMap {
+		// Create a new variable to store the modified query
+		modifiedSql := strings.Replace(newconstructionSql, "GROUP BY", "WHERE bpic.TownShipBorough IN "+sdWhere+" GROUP BY", 1)
+
+		// Get total taxable amount for each SD
+		modifiedtxblSql := totaltaxableSql + " AND P.TownShipBorough IN " + sdWhere
+		rowsTxbl, err := tx.Query(modifiedtxblSql)
+		if err != nil {
 			log.Fatal(err)
 		}
-		data = append(data, r)
-	}
-	if err := rows.Err(); err != nil {
-		log.Fatal(err)
+		defer rowsTxbl.Close()
+
+		// Get assessment increase for each SD
+		rows, err := tx.Query(modifiedSql)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer rows.Close()
+
+		// Parse rows into struct
+		var txblData []txblRow
+		for rowsTxbl.Next() {
+			var r txblRow
+			if err := rowsTxbl.Scan(&r.TotalTxbl); err != nil {
+				log.Fatal(err)
+			}
+			txblData = append(txblData, r)
+		}
+		if err := rowsTxbl.Err(); err != nil {
+			log.Fatal(err)
+		}
+
+		var data []Row
+		for rows.Next() {
+			var r Row
+			if err := rows.Scan(&r.TownShipBorough, &r.DistrictName, &r.OldImprAssmt, &r.NewImprAssmt, &r.ImprDiff); err != nil {
+				log.Fatal(err)
+			}
+			data = append(data, r)
+		}
+		if err := rows.Err(); err != nil {
+			log.Fatal(err)
+		}
+
+		// Pull Excel template
+		templatePath := fmt.Sprintf("./templ/%s_AssmtIncrease_.xlsx", sdName)
+		f, err := excelize.OpenFile(templatePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// Populate data and cover sheets
+		handleSchoolDist(f, sdName, data, txblData)
+
+		// Save file
+		saveExcelFile(f, sdName)
 	}
 
-	// Pull SD Excel template
-	f, err := excelize.OpenFile("./templ/WHSD_AssmtIncrease_.xlsx")
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
+	// Set transaction success flag
+	ok = true
+}
 
-	var today string = time.Now().Format("2006-01-02")
-
+func handleSchoolDist(f *excelize.File, schoolDist string, data []Row, txblData []txblRow) {
 	/* Populate "Data" sheet */
 	sheetIndex := 1 // "Data" sheet
 	sheetName := f.GetSheetMap()[sheetIndex]
@@ -79,15 +132,36 @@ func main() {
 	sheetIndex = 2 // "Cover" sheet
 	sheetName = f.GetSheetMap()[sheetIndex]
 	f.SetActiveSheet(sheetIndex)
-	popHeaderCells(f, sheetName)
+	popHeaderCells(f, sheetName, txblData)
 
+	// Save file
+	saveExcelFile(f, schoolDist)
+}
+
+func saveExcelFile(f *excelize.File, schoolDist string) {
 	currTime := time.Now().Format("1504")
-	if err := f.SaveAs("C:/Users/Samuel/grandjean.net/FogBugz - Documents/11466/daily/WHSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"); err != nil {
-		log.Fatal(err)
+	var today string = time.Now().Format("2006-01-02")
+	var savePath string = "C:/Users/Samuel/grandjean.net/FogBugz - Documents/"
+
+	switch schoolDist {
+	case "WHSD":
+		savePath += "11520/daily/WHSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "WESD":
+		savePath += "11520/daily/WESD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "WASD":
+		savePath += "11520/daily/WASD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "SQSD":
+		savePath += "11520/daily/SQSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "NPSD":
+		savePath += "11520/daily/NPSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
+	case "FCRSD":
+		savePath += "11520/daily/FCRSD_AssmtIncrease_" + today + "_" + currTime + ".xlsx"
 	}
 
-	// Set transaction success flag
-	ok = true
+	if err := f.SaveAs(savePath); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(schoolDist + " saved at " + currTime + ".\n")
 }
 
 func popDataCells(f *excelize.File, sheet string, data []Row) {
@@ -124,11 +198,14 @@ func fmtDataCells(f *excelize.File, sheet string) {
 	}
 }
 
-func popHeaderCells(f *excelize.File, sheet string) {
+func popHeaderCells(f *excelize.File, sheet string, txblData []txblRow) {
 	switch sheet {
 	case "Cover":
 		var today string = time.Now().Format("01/02/2006")
 		f.SetCellValue(sheet, "A2", "Parcels w/ New Construction as of "+today+":")
 		f.SetCellValue(sheet, "A3", "Parcels w/ New Construction as of 01/01/2023:")
+		for i, r := range txblData {
+			f.SetCellValue(sheet, fmt.Sprintf("B%d", i+8), r.TotalTxbl)
+		}
 	}
 }

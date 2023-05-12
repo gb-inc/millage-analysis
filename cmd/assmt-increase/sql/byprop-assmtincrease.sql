@@ -32,21 +32,4 @@ CREATE OR ALTER VIEW byprop_assmtincrease AS
     AND P.LandUse NOT IN ('166','W10')
     AND TBC.TownshipOrBorough IN ('T','B')
     AND NOT luc.ParcelStatus = 'N'
-    /* Wayne Highlands School District Specific */
-    AND P.TownShipBorough IN
-    ('030',
-     '070',
-     '150',
-     '200',
-     '230',
-     '020',
-     '090',
-     '110',
-     '130',
-     '010',
-     '050',
-     '170',
-     '210',
-     '270') -- 273 in Wallenpaupack
-    /* Wayne Highlands School District Specific */
     AND (AN.ImprovementAssessment) - (ANOLD.ImprovementAssessment) >= 0
