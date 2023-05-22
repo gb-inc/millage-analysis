@@ -32,7 +32,7 @@ type Row struct {
 }
 
 func main() {
-	db, err := utils.NewDB("localhost", "1433", "TaxDB_Dev")
+	db, err := utils.NewDB("10.0.7.24", "1433", "TaxDB")
 	if err != nil {
 		log.Fatal(err)
 	}
