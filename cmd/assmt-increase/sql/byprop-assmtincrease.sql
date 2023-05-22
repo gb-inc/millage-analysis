@@ -23,7 +23,7 @@ CREATE OR ALTER VIEW byprop_assmtincrease AS
             FROM AssmtNew
             WHERE EffectiveDate >= '2022-07-01 00:00:00.000'
             AND EffectiveDate <= '2023-01-01 00:00:00.000'
-            AND ApprovalDate >= '2022-02-22 00:00:00.000'
+            AND ApprovalDate >= '2022-02-22 00:00:00.000' --oldest approval date for 07/01 effective dates
 		    AND ApprovalDate < '2023-01-01 00:00:00.000'
         ) ranked
         WHERE rank = 1
