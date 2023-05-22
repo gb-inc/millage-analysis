@@ -29,7 +29,7 @@ CREATE OR ALTER VIEW byprop_assmtincrease AS
         WHERE rank = 1
     ) ANOLD ON P.PropertyID = ANOLD.PropertyID
     WHERE AN.CurrentAssessment = -1
-    AND AN.ApprovalDate > '2023-01-01 00:00:00.000'
+    AND AN.ApprovalDate > '2022-07-01 00:00:00.000'
     AND P.ParcelEliminated IS NULL
     AND P.LandUse NOT IN ('166','W10')
     AND TBC.TownshipOrBorough IN ('T','B')
